@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { App } from "./App";
 import { AuthenticationPage } from "./Pages/Authentication";
 import { Lobby } from "./Pages/Lobby";
@@ -13,6 +13,7 @@ export const Root = () => (
     <Routes>
       <Route path="/" element={<App />}>
         <Route element={<RequireAuth />}>
+          <Route index element={<Navigate to="/main" replace />} />
           <Route path="main/:chatId?" element={<MainPage />} />
           <Route path="lobby" element={<Lobby />} />
           <Route path="room/:roomId" element={<RoomPage />} />
