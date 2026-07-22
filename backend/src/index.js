@@ -13,8 +13,8 @@ import { chatRouter } from "./routers/chat.route.js";
 import { messageRouter } from "./routers/message.route.js";
 
 // 1. Импортируем подключение и модели
-import { client } from "./src/utils/db.js";
-import "./src/models/index.js";
+import { client } from "./utils/db.js";
+import "./models/index.js";
 
 const PORT = process.env.PORT || 3005;
 
