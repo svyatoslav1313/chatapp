@@ -12,6 +12,10 @@ import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { chatRouter } from "./routers/chat.route.js";
 import { messageRouter } from "./routers/message.route.js";
 
+// 1. Импортируем подключение и модели
+import { client } from "./src/utils/db.js";
+import "./src/models/index.js";
+
 const PORT = process.env.PORT || 3005;
 
 const app = express();
@@ -32,10 +36,22 @@ app.use("/message", messageRouter);
 
 app.use(errorMiddleware);
 
-const server = app.listen(PORT, () => {
-  console.log("Server is running on http://localhost:3005");
-});
+// 2. Оборачиваем запуск в async-функцию
+async function startServer() {
+  try {
+    // Подключаемся к Neon и создаём/обновляем таблицы (БЕЗ удаления данных)
+    await client.sync({ alter: true });
+    console.log("Database synchronized successfully!");
 
-const wss = new WebSocketServer({ server });
+    const server = app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
 
-initWebSocket(wss);
+    const wss = new WebSocketServer({ server });
+    initWebSocket(wss);
+  } catch (error) {
+    console.error("Failed to start server or sync DB:", error);
+  }
+}
+
+startServer();
