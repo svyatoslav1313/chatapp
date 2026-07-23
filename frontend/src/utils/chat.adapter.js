@@ -42,6 +42,18 @@ const formatLastSeen = (isoString) => {
   })}`;
 };
 
+export const formatPresenceLabel = ({ isOnline, lastSeen }) => {
+  if (isOnline) {
+    return "Online";
+  }
+
+  if (lastSeen) {
+    return formatLastSeen(lastSeen);
+  }
+
+  return "Offline";
+};
+
 export const formatMessageTime = (isoString) => {
   if (!isoString) return "";
 
@@ -73,10 +85,11 @@ export const formatMessageTime = (isoString) => {
  */
 export const mapChatToViewModel = (chat, currentUserId) => {
   const isDirect = chat.type === "direct";
+  const currentUserKey = String(currentUserId);
 
   // 1. Определяем собеседника (для личек)
   const partner = isDirect
-    ? chat.users?.find((u) => u.id !== currentUserId)
+    ? chat.users?.find((u) => String(u.id) !== currentUserKey)
     : null;
 
   // 2. Имя чата
@@ -107,9 +120,10 @@ export const mapChatToViewModel = (chat, currentUserId) => {
     partnerId: partner?.id || null,
     online: Boolean(partner?.isOnline),
     lastSeen: partner?.lastSeen || null,
-    presenceLabel: partner?.isOnline
-      ? "Online"
-      : formatLastSeen(partner?.lastSeen),
+    presenceLabel: formatPresenceLabel({
+      isOnline: partner?.isOnline,
+      lastSeen: partner?.lastSeen,
+    }),
     raw: chat, // На случай, если компоненту понадобится исходник
   };
 };

@@ -1,6 +1,7 @@
 // src/components/Sidebar/SearchResults.jsx
 import { Loader } from "lucide-react";
 import styles from "./ChatList.module.scss"; // Используем текущие стили карточек
+import { formatPresenceLabel } from "../../utils/chat.adapter";
 
 export const SearchResults = ({ results, loading, onSelectUser }) => {
   if (loading) {
@@ -31,16 +32,10 @@ export const SearchResults = ({ results, loading, onSelectUser }) => {
             <span className={styles.lastMsg}>{foundUser.email}</span>
             {foundUser.chatId && foundUser.isOnline !== undefined && (
               <span className={styles.lastMsg}>
-                {foundUser.isOnline
-                  ? "Online"
-                  : foundUser.lastSeen
-                    ? `Last seen ${new Date(
-                        foundUser.lastSeen,
-                      ).toLocaleDateString([], {
-                        day: "2-digit",
-                        month: "2-digit",
-                      })}`
-                    : "Offline"}
+                {formatPresenceLabel({
+                  isOnline: foundUser.isOnline,
+                  lastSeen: foundUser.lastSeen,
+                })}
               </span>
             )}
           </div>

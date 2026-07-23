@@ -12,6 +12,7 @@ import { chatService } from "../../services/chatService";
 import {
   mapChatsToViewModel,
   mapChatToViewModel,
+  formatPresenceLabel,
 } from "../../utils/chat.adapter";
 import styles from "./MainPage.module.scss";
 import { useSocket } from "../../Context/useSocket";
@@ -151,15 +152,7 @@ export const MainPage = () => {
                 ...chat,
                 online: isOnline,
                 lastSeen,
-                presenceLabel: isOnline
-                  ? "Online"
-                  : lastSeen
-                    ? `Last seen ${new Date(lastSeen).toLocaleDateString([], {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}`
-                    : "Offline",
+                presenceLabel: formatPresenceLabel({ isOnline, lastSeen }),
               }
             : chat,
         ),
