@@ -1,28 +1,30 @@
-import React from "react";
 import { Search, Settings, MessageSquare, Users } from "lucide-react";
 import styles from "./SidebarHeader.module.scss";
 
 export const SidebarHeader = ({
+  user,
   searchQuery,
   setSearchQuery,
   activeTab,
   setActiveTab,
-  onOpenSettings, // <-- Проп открытия настроек
+  onOpenSettings,
 }) => {
   return (
     <>
       <div className={styles.sidebarHeader}>
         <div className={styles.userInfo}>
-          <div className={styles.avatar}>A</div>
+          <div className={styles.avatar}>
+            {user.name[0].toUpperCase() || ""}
+          </div>
           <div className={styles.userText}>
-            <span className={styles.userName}>Alexander</span>
+            <span className={styles.userName}>{user.name || ""}</span>
             <span className={styles.userStatus}>Online</span>
           </div>
         </div>
         <button
           className={styles.iconButton}
           title="Settings"
-          onClick={onOpenSettings} // <-- Кликом открываем модалку
+          onClick={onOpenSettings}
         >
           <Settings size={18} />
         </button>

@@ -4,15 +4,15 @@ import styles from "./MessageList.module.scss";
 import { formatMessageTime } from "../../utils/chat.adapter.js";
 import { useSocket } from "../../Context/SocketContext.jsx";
 
-export const MessageList = ({ userId, chatId }) => {
+export const MessageList = ({ userId, chatId, incomingMessage }) => {
   const [messages, setMessages] = useState([]);
-  const { joinChat, incomingMessage } = useSocket();
+  // const { joinChat } = useSocket();
 
   useEffect(() => {
     messageService.getMessages(chatId).then((res) => setMessages(res));
 
-    joinChat(chatId);
-  }, [chatId, joinChat]);
+    // joinChat(chatId);
+  }, [chatId]);
 
   useEffect(() => {
     if (incomingMessage && incomingMessage.chatId === chatId) {
@@ -27,10 +27,12 @@ export const MessageList = ({ userId, chatId }) => {
           key={message.id}
           className={`${styles.message} ${message.senderId === userId ? styles.outgoing : styles.incoming}`}
         >
-          <div className={styles.msgContent}>{message.text}</div>
-          <span className={styles.msgTime}>
-            {formatMessageTime(message.createdAt)}
-          </span>
+          <div className={styles.msgContent}>
+            {message.text}
+            <span className={styles.msgTime}>
+              {formatMessageTime(message.createdAt)}
+            </span>
+          </div>
         </div>
       ))}
     </div>

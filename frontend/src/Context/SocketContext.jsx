@@ -1,6 +1,14 @@
 import { AuthContext } from "./AuthContext";
 import { accessTokenService } from "../services/accessTokenService";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 const SocketContext = createContext(null);
 
@@ -56,7 +64,7 @@ export const SocketProvider = ({ children }) => {
     };
   }, [user, accessToken]);
 
-  const joinChat = (chatId) => {
+  const joinChat = useCallback((chatId) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
@@ -65,30 +73,31 @@ export const SocketProvider = ({ children }) => {
         }),
       );
     }
-  };
+  }, []);
 
-  const sendMessage = (chatId, text) => {
+  const sendMessage = useCallback((chatId, chatType, text) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
           event: "send_message",
-          data: { chatId, text },
+          data: { chatId, chatType, text },
         }),
       );
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      isConnected,
+      incomingMessage,
+      joinChat,
+      sendMessage,
+    }),
+    [isConnected, incomingMessage, joinChat, sendMessage],
+  );
 
   return (
-    <SocketContext.Provider
-      value={{
-        isConnected,
-        incomingMessage,
-        joinChat,
-        sendMessage,
-      }}
-    >
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 };
 

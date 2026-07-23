@@ -12,8 +12,9 @@ import { chatService } from "../../services/chatService";
 import {
   mapChatsToViewModel,
   mapChatToViewModel,
-} from "../../utils/chat.adapter"; // 👈 Импортируем оба маппера
+} from "../../utils/chat.adapter";
 import styles from "./MainPage.module.scss";
+import { useSocket } from "../../Context/SocketContext";
 
 const MOCK_ROOMS = [
   {
@@ -33,13 +34,14 @@ const MOCK_ROOMS = [
 
 export const MainPage = () => {
   const { user, logout } = useContext(AuthContext);
+  const { incomingMessage } = useSocket();
   const { chatId } = useParams();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("direct");
   const [searchQuery, setSearchQuery] = useState("");
-  const [chats, setChats] = useState([]); // Хранит список постоянных чатов
-  const [searchResults, setSearchResults] = useState([]); // 👈 Отдельный стейт для поиска
+  const [chats, setChats] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
 
@@ -66,7 +68,6 @@ export const MainPage = () => {
     try {
       let targetChatId = foundUser.chatId;
 
-      // Если чата с юзером ещё нет на фронтенде — запрашиваем/создаём его на бэкенде
       if (!targetChatId) {
         const rawChat = await chatService.createDirectChat(foundUser.id);
         const formattedChat = mapChatToViewModel(rawChat, user.id);
@@ -77,14 +78,13 @@ export const MainPage = () => {
         targetChatId = formattedChat.id;
       }
 
-      setSearchQuery(""); // Сбрасываем поиск, чтобы вернуть обычный список чатов
+      setSearchQuery("");
       navigate(`/main/${targetChatId}`);
     } catch (error) {
       console.error("Ошибка при открытии чата из поиска:", error);
     }
   };
 
-  // Загрузка постоянных чатов пользователя
   useEffect(() => {
     if (!user?.id) return;
 
@@ -94,10 +94,45 @@ export const MainPage = () => {
     });
   }, [user?.id]);
 
-  // Глобальный поиск при вводе в инпут
+  useEffect(() => {
+    if (incomingMessage && incomingMessage.chat.type === "direct") {
+      setChats((prevChats) =>
+        prevChats
+          .map((chat) =>
+            String(chat.id) === String(incomingMessage.chatId)
+              ? {
+                  ...chat,
+                  lastMessageText: incomingMessage.text,
+                  time: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                  senderPrefix:
+                    String(incomingMessage.senderId) === String(user.id)
+                      ? "You: "
+                      : "",
+                }
+              : chat,
+          )
+          .sort((leftChat, rightChat) => {
+            if (String(leftChat.id) === String(incomingMessage.chatId)) {
+              return -1;
+            }
+
+            if (String(rightChat.id) === String(incomingMessage.chatId)) {
+              return 1;
+            }
+
+            return 0;
+          }),
+      );
+    }
+  }, [incomingMessage, user.id]);
+
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
+
       return;
     }
 
@@ -121,6 +156,7 @@ export const MainPage = () => {
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <SidebarHeader
+          user={user}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           activeTab={activeTab}
@@ -128,7 +164,6 @@ export const MainPage = () => {
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        {/* Если есть поисковый запрос — показываем SearchResults, иначе — ChatList */}
         {searchQuery.trim() ? (
           <SearchResults
             results={searchResults}
@@ -150,8 +185,15 @@ export const MainPage = () => {
         {chatId && selectedChat ? (
           <>
             <ChatHeader selectedChat={selectedChat} />
-            <MessageList userId={user.id} chatId={selectedChat.id} />
-            <MessageInput chatId={selectedChat.id} />
+            <MessageList
+              userId={user.id}
+              chatId={selectedChat.id}
+              incomingMessage={incomingMessage}
+            />
+            <MessageInput
+              chatId={selectedChat.id}
+              chatType={selectedChat.type}
+            />
           </>
         ) : (
           <div className={styles.emptyState}>
@@ -160,8 +202,8 @@ export const MainPage = () => {
         )}
       </main>
 
-      {/* Модальное окно настроек */}
       <SettingsModal
+        user={user}
         isOpen={isSettingsOpen}
         onClose={() => setSettingsOpen(false)}
         onLogout={handleLogout}

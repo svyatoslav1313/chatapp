@@ -71,7 +71,7 @@ export const mapChatToViewModel = (chat, currentUserId) => {
   let senderPrefix = "";
   if (lastMsgObj) {
     const isMyMessage = lastMsgObj.senderId === currentUserId;
-    senderPrefix = isMyMessage ? "Вы: " : `${lastMsgObj.sender?.nickname}: `;
+    senderPrefix = isMyMessage ? "You: " : `${lastMsgObj.sender?.nickname}: `;
   }
 
   return {
@@ -92,5 +92,22 @@ export const mapChatToViewModel = (chat, currentUserId) => {
  * Маппер для массива чатов
  */
 export const mapChatsToViewModel = (chats = [], currentUserId) => {
-  return chats.map((chat) => mapChatToViewModel(chat, currentUserId));
+  const formatted = chats.map((chat) =>
+    mapChatToViewModel(chat, currentUserId),
+  );
+
+  return formatted.sort((a, b) => {
+    // Достаем дату последнего сообщения или создания чата для A
+    const timeA = new Date(
+      a.raw.messages?.[0]?.createdAt || a.raw.createdAt,
+    ).getTime();
+
+    // Достаем дату последнего сообщения или создания чата для B
+    const timeB = new Date(
+      b.raw.messages?.[0]?.createdAt || b.raw.createdAt,
+    ).getTime();
+
+    // Сортируем от самых новых к более старым (DESC)
+    return timeB - timeA;
+  });
 };

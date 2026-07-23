@@ -35,7 +35,17 @@ const sendMessage = async (chatId, senderId, text) => {
   const message = await Message.create({ chatId, senderId, text });
 
   return await Message.findByPk(message.id, {
-    include: [{ model: User, as: "sender", attributes: ["id", "nickname"] }],
+    include: [
+      {
+        model: Chat,
+        attributes: ["id", "type"],
+      },
+      {
+        model: User,
+        as: "sender",
+        attributes: ["id", "nickname"],
+      },
+    ],
   });
 };
 

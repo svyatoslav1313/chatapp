@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../models/User.js";
 
-const normalize = ({ id, name, email }) => {
+const normalize = ({ id, name, nickname, email }) => {
   return {
     id,
     name,
+    nickname,
     email,
   };
 };

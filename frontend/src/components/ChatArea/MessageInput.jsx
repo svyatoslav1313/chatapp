@@ -3,7 +3,7 @@ import styles from "./MessageInput.module.scss";
 import { useSocket } from "../../Context/SocketContext";
 import { useState } from "react";
 
-export const MessageInput = ({ chatId }) => {
+export const MessageInput = ({ chatId, chatType }) => {
   const [text, setText] = useState("");
   const { sendMessage } = useSocket();
 
@@ -11,7 +11,7 @@ export const MessageInput = ({ chatId }) => {
     e.preventDefault();
     if (!text.trim() || !chatId) return;
 
-    sendMessage(chatId, text);
+    sendMessage(chatId, chatType, text);
     setText("");
   };
 

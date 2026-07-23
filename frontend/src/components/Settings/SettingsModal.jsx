@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X, LogOut, User, Lock, Mail, AtSign, Check } from "lucide-react";
 import styles from "./SettingsModal.module.scss";
 
-export const SettingsModal = ({ isOpen, onClose, onLogout }) => {
-  // Локальные стейты формы
-  const [firstName, setFirstName] = useState("Alexander");
-  const [lastName, setLastName] = useState("Morgan");
-  const [nickname, setNickname] = useState("alex_dev");
-  const [email, setEmail] = useState("alexander@gmail.com");
+export const SettingsModal = ({ user, isOpen, onClose, onLogout }) => {
+  const [name, setName] = useState(user.name || "");
+  const [nickname, setNickname] = useState(user.nickname || "");
+  const [email, setEmail] = useState(user.email || "");
 
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -41,26 +39,13 @@ export const SettingsModal = ({ isOpen, onClose, onLogout }) => {
 
             <div className={styles.row}>
               <div className={styles.field}>
-                <label className={styles.label}>First Name</label>
+                <label className={styles.label}>Name</label>
                 <div className={styles.inputWrapper}>
                   <User size={16} className={styles.icon} />
                   <input
                     type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className={styles.input}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Last Name</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className={styles.input}
                     required
                   />
