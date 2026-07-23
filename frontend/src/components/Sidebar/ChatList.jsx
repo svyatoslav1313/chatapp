@@ -38,6 +38,11 @@ export const ChatList = ({
                     {chat.senderPrefix && <b>{chat.senderPrefix}</b>}
                     {chat.lastMessageText}
                   </span>
+                  {chat.type === "direct" && chat.presenceLabel && (
+                    <span className={styles.chatTime}>
+                      {chat.presenceLabel}
+                    </span>
+                  )}
 
                   {(chat.unreadCount > 0 || chat.unread > 0) && (
                     <span className={styles.unreadBadge}>

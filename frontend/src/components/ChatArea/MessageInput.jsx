@@ -1,6 +1,6 @@
 import { Send } from "lucide-react";
 import styles from "./MessageInput.module.scss";
-import { useSocket } from "../../Context/SocketContext";
+import { useSocket } from "../../Context/useSocket";
 import { useState } from "react";
 
 export const MessageInput = ({ chatId, chatType }) => {

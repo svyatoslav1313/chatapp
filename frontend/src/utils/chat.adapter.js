@@ -21,6 +21,27 @@ const formatChatTime = (isoString) => {
   return date.toLocaleDateString([], { day: "2-digit", month: "2-digit" });
 };
 
+const formatLastSeen = (isoString) => {
+  if (!isoString) {
+    return "";
+  }
+
+  const date = new Date(isoString);
+  const now = new Date();
+
+  const isToday = date.toDateString() === now.toDateString();
+
+  if (isToday) {
+    return `Last seen today at ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  }
+
+  return `Last seen ${date.toLocaleDateString([], {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })}`;
+};
+
 export const formatMessageTime = (isoString) => {
   if (!isoString) return "";
 
@@ -84,6 +105,11 @@ export const mapChatToViewModel = (chat, currentUserId) => {
     unreadCount: 0, // Можно расширить, когда добавится счетчик непрочитанных
     avatarLetter: title[0]?.toUpperCase() || "?",
     partnerId: partner?.id || null,
+    online: Boolean(partner?.isOnline),
+    lastSeen: partner?.lastSeen || null,
+    presenceLabel: partner?.isOnline
+      ? "Online"
+      : formatLastSeen(partner?.lastSeen),
     raw: chat, // На случай, если компоненту понадобится исходник
   };
 };

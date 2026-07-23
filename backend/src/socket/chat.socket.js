@@ -3,21 +3,51 @@ import url from "url";
 import { jwtService } from "../services/jwt.service.js";
 import { messageService } from "../services/message.service.js";
 import { UserChat } from "../models/UserChat.js";
+import { User } from "../models/User.js";
+import { chatService } from "../services/chat.service.js";
 
 // Хранилище активных комнат: chatId -> Set<WebSocket>
 const rooms = new Map();
 
 const userSockets = new Map();
 
-const addUserSocket = (userId, ws) => {
+const broadcastStatusChange = async (
+  userId,
+  isOnline,
+  lastSeen = new Date(),
+) => {
+  try {
+    const partnerIds = await chatService.getDirectPartnersIds(userId);
+
+    if (!partnerIds.length) return;
+
+    const payload = {
+      event: "user_status_changed",
+      data: { userId, isOnline, lastSeen },
+    };
+
+    partnerIds.forEach((partnerId) => {
+      broadCastToUser(partnerId, payload);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const addUserSocket = async (userId, ws) => {
   if (!userSockets.has(userId)) {
     userSockets.set(userId, new Set());
   }
 
   userSockets.get(userId).add(ws);
+
+  if (userSockets.get(userId).size === 1) {
+    await User.update({ isOnline: true }, { where: { id: userId } });
+    broadcastStatusChange(userId, true);
+  }
 };
 
-const removeUserSocket = (userId, ws) => {
+const removeUserSocket = async (userId, ws) => {
   if (!userSockets.has(userId)) {
     return;
   }
@@ -27,6 +57,14 @@ const removeUserSocket = (userId, ws) => {
 
   if (sockets.size === 0) {
     userSockets.delete(userId);
+
+    const now = new Date();
+    await User.update(
+      { isOnline: false, lastSeen: now },
+      { where: { id: userId } },
+    );
+
+    broadcastStatusChange(userId, false, now);
   }
 };
 
@@ -47,7 +85,33 @@ const broadCastToUser = (userId, payload) => {
 };
 
 export const initWebSocket = (wss) => {
+  // 1. Heartbeat: каждые 30 секунд проверяем зависшие сокеты
+  const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.isAlive === false) {
+        console.log(
+          `💀 Terminating dead connection for user: ${ws.user?.nickname || "unknown"}`,
+        );
+        return ws.terminate(); // Вызывает событие "close"
+      }
+
+      ws.isAlive = false;
+      ws.ping(); // Браузер автоматически ответит кадром pong
+    });
+  }, 30000);
+
+  // Очищаем интервал при закрытии самого WebSocket сервера
+  wss.on("close", () => {
+    clearInterval(interval);
+  });
+
   wss.on("connection", async (ws, req) => {
+    // Инициализируем флаг активности сокета
+    ws.isAlive = true;
+    ws.on("pong", () => {
+      ws.isAlive = true;
+    });
+
     const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
     const token = parsedUrl.searchParams.get("token");
 
@@ -62,12 +126,11 @@ export const initWebSocket = (wss) => {
       ws.user = userData;
       ws.currentChatId = null;
 
-      addUserSocket(userData.id, ws);
+      await addUserSocket(userData.id, ws);
 
       console.log(`⚡ User connected: ${ws.user.nickname}`);
     } catch (error) {
       ws.close(4003, "Unauthorized: Invalid token");
-
       return;
     }
 
@@ -142,6 +205,7 @@ export const initWebSocket = (wss) => {
                 });
               }
             }
+            break;
           }
         }
       } catch (err) {
@@ -150,9 +214,9 @@ export const initWebSocket = (wss) => {
     });
 
     // 3. Отключение пользователя
-    ws.on("close", () => {
+    ws.on("close", async () => {
       if (ws.user?.id) {
-        removeUserSocket(ws.user.id, ws);
+        await removeUserSocket(ws.user.id, ws);
       }
 
       if (ws.currentChatId && rooms.has(ws.currentChatId)) {

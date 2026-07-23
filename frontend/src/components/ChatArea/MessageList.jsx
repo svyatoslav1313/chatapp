@@ -2,23 +2,25 @@ import { useEffect, useState } from "react";
 import { messageService } from "../../services/messageService.js";
 import styles from "./MessageList.module.scss";
 import { formatMessageTime } from "../../utils/chat.adapter.js";
-import { useSocket } from "../../Context/SocketContext.jsx";
+import { useSocket } from "../../Context/useSocket";
 
-export const MessageList = ({ userId, chatId, incomingMessage }) => {
+export const MessageList = ({ userId, chatId }) => {
   const [messages, setMessages] = useState([]);
-  // const { joinChat } = useSocket();
+  const { onMessage } = useSocket(); // 👈 Берём onMessage
 
   useEffect(() => {
     messageService.getMessages(chatId).then((res) => setMessages(res));
-
-    // joinChat(chatId);
   }, [chatId]);
 
   useEffect(() => {
-    if (incomingMessage && incomingMessage.chatId === chatId) {
-      setMessages((prev) => [...prev, incomingMessage]);
-    }
-  }, [incomingMessage, chatId]);
+    const unsubscribe = onMessage((incomingMessage) => {
+      if (incomingMessage && incomingMessage.chatId === chatId) {
+        setMessages((prev) => [...prev, incomingMessage]);
+      }
+    });
+
+    return unsubscribe;
+  }, [chatId, onMessage]);
 
   return (
     <div className={styles.messagesContainer}>

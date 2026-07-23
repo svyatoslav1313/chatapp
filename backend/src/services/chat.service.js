@@ -20,7 +20,7 @@ const getUserDirectChats = async (userId) => {
     include: [
       {
         model: User,
-        attributes: ["id", "nickname", "email"],
+        attributes: ["id", "nickname", "email", "isOnline", "lastSeen"],
         through: { attributes: [] },
       },
       {
@@ -43,7 +43,7 @@ const searchUsers = async (query, currentUserId) => {
       id: { [Op.ne]: currentUserId }, // Исключаем самого себя
       nickname: { [Op.iLike]: `%${query.trim()}%` },
     },
-    attributes: ["id", "nickname", "email"],
+    attributes: ["id", "nickname", "email", "isOnline", "lastSeen"],
     limit: 10,
     raw: true, // Получаем чистые JS-объекты
   });
@@ -80,6 +80,8 @@ const searchUsers = async (query, currentUserId) => {
     id: user.id,
     nickname: user.nickname,
     email: user.email,
+    isOnline: user.isOnline,
+    lastSeen: user.lastSeen,
     chatId: userChatMap.get(user.id) || null, // Если чата нет — подставит null
   }));
 };
@@ -111,7 +113,7 @@ const createDirectChat = async (currentUserId, targetUserId) => {
     include: [
       {
         model: User,
-        attributes: ["id", "nickname", "email"],
+        attributes: ["id", "nickname", "email", "isOnline", "lastSeen"],
         through: { attributes: [] },
       },
       {
@@ -131,8 +133,48 @@ const createRoom = async (name, currentUserId) => {
   return newRoom;
 };
 
+const getDirectPartnersIds = async (userId) => {
+  // 1. Получаем все chatId, в которых состоит текущий юзер
+  const myUserChats = await UserChat.findAll({
+    where: { userId },
+    attributes: ["chatId"],
+    raw: true,
+  });
+
+  if (!myUserChats.length) return [];
+
+  const myChatIds = myUserChats.map((uc) => uc.chatId);
+
+  // 2. Фильтруем и оставляем только те чаты, у которых type === "direct"
+  const directChats = await Chat.findAll({
+    where: {
+      id: myChatIds,
+      type: "direct",
+    },
+    attributes: ["id"],
+    raw: true,
+  });
+
+  if (!directChats.length) return [];
+
+  const directChatIds = directChats.map((c) => c.id);
+
+  // 3. Находим всех собеседников из этих личных чатов (исключая самого себя)
+  const partners = await UserChat.findAll({
+    where: {
+      chatId: directChatIds,
+      userId: { [Op.ne]: userId },
+    },
+    attributes: ["userId"],
+    raw: true,
+  });
+
+  return partners.map((p) => p.userId);
+};
+
 export const chatService = {
   getUserDirectChats,
   searchUsers,
   createDirectChat,
+  getDirectPartnersIds,
 };

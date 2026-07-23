@@ -11,6 +11,11 @@ export const ChatHeader = ({ selectedChat }) => {
             {selectedChat.nickname || `${selectedChat.members} members active`}
           </span>
         )}
+        {selectedChat.type === "direct" && selectedChat.presenceLabel && (
+          <span className={styles.activeChatSub}>
+            {selectedChat.presenceLabel}
+          </span>
+        )}
       </div>
       <button className={styles.iconButton}>
         <MoreVertical size={18} />

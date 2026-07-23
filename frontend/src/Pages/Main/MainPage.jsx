@@ -14,7 +14,7 @@ import {
   mapChatToViewModel,
 } from "../../utils/chat.adapter";
 import styles from "./MainPage.module.scss";
-import { useSocket } from "../../Context/SocketContext";
+import { useSocket } from "../../Context/useSocket";
 
 const MOCK_ROOMS = [
   {
@@ -34,7 +34,7 @@ const MOCK_ROOMS = [
 
 export const MainPage = () => {
   const { user, logout } = useContext(AuthContext);
-  const { incomingMessage } = useSocket();
+  const { onMessage, onUserStatusChange } = useSocket();
   const { chatId } = useParams();
   const navigate = useNavigate();
 
@@ -59,6 +59,17 @@ export const MainPage = () => {
     }
   };
 
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+
+    if (query.trim()) {
+      setLoadingSearch(true);
+    } else {
+      setLoadingSearch(false);
+      setSearchResults([]);
+    }
+  };
+
   const handleSelectChat = (selectedChatId) => {
     navigate(`/main/${selectedChatId}`);
   };
@@ -72,7 +83,6 @@ export const MainPage = () => {
         const rawChat = await chatService.createDirectChat(foundUser.id);
         const formattedChat = mapChatToViewModel(rawChat, user.id);
 
-        // Добавляем новый чат в начало списка
         setChats((prev) => [formattedChat, ...prev]);
 
         targetChatId = formattedChat.id;
@@ -95,48 +105,74 @@ export const MainPage = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    if (incomingMessage && incomingMessage.chat.type === "direct") {
+    const unsubscribe = onMessage((incomingMessage) => {
+      if (incomingMessage && incomingMessage.chat.type === "direct") {
+        setChats((prevChats) =>
+          prevChats
+            .map((chat) =>
+              String(chat.id) === String(incomingMessage.chatId)
+                ? {
+                    ...chat,
+                    lastMessageText: incomingMessage.text,
+                    time: new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                    senderPrefix:
+                      String(incomingMessage.senderId) === String(user.id)
+                        ? "You: "
+                        : "",
+                  }
+                : chat,
+            )
+            .sort((leftChat, rightChat) => {
+              if (String(leftChat.id) === String(incomingMessage.chatId)) {
+                return -1;
+              }
+              if (String(rightChat.id) === String(incomingMessage.chatId)) {
+                return 1;
+              }
+              return 0;
+            }),
+        );
+      }
+    });
+
+    // Отписываемся при размонтировании
+    return unsubscribe;
+  }, [user?.id, onMessage]);
+
+  useEffect(() => {
+    const unsubscribe = onUserStatusChange(({ userId, isOnline, lastSeen }) => {
       setChats((prevChats) =>
-        prevChats
-          .map((chat) =>
-            String(chat.id) === String(incomingMessage.chatId)
-              ? {
-                  ...chat,
-                  lastMessageText: incomingMessage.text,
-                  time: new Date().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                  senderPrefix:
-                    String(incomingMessage.senderId) === String(user.id)
-                      ? "You: "
-                      : "",
-                }
-              : chat,
-          )
-          .sort((leftChat, rightChat) => {
-            if (String(leftChat.id) === String(incomingMessage.chatId)) {
-              return -1;
-            }
-
-            if (String(rightChat.id) === String(incomingMessage.chatId)) {
-              return 1;
-            }
-
-            return 0;
-          }),
+        prevChats.map((chat) =>
+          String(chat.partnerId) === String(userId)
+            ? {
+                ...chat,
+                online: isOnline,
+                lastSeen,
+                presenceLabel: isOnline
+                  ? "Online"
+                  : lastSeen
+                    ? `Last seen ${new Date(lastSeen).toLocaleDateString([], {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}`
+                    : "Offline",
+              }
+            : chat,
+        ),
       );
-    }
-  }, [incomingMessage, user.id]);
+    });
+
+    return unsubscribe;
+  }, [onUserStatusChange]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setSearchResults([]);
-
       return;
     }
-
-    setLoadingSearch(true);
 
     const timerId = setTimeout(() => {
       chatService
@@ -144,8 +180,13 @@ export const MainPage = () => {
         .then((res) => {
           setSearchResults(res || []);
         })
-        .finally(() => setLoadingSearch(false));
-    }, 1000);
+        .catch((err) => {
+          console.error("Search error:", err);
+        })
+        .finally(() => {
+          setLoadingSearch(false);
+        });
+    }, 500);
 
     return () => {
       clearTimeout(timerId);
@@ -158,7 +199,7 @@ export const MainPage = () => {
         <SidebarHeader
           user={user}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          setSearchQuery={handleSearchChange}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onOpenSettings={() => setSettingsOpen(true)}
@@ -185,11 +226,7 @@ export const MainPage = () => {
         {chatId && selectedChat ? (
           <>
             <ChatHeader selectedChat={selectedChat} />
-            <MessageList
-              userId={user.id}
-              chatId={selectedChat.id}
-              incomingMessage={incomingMessage}
-            />
+            <MessageList userId={user.id} chatId={selectedChat.id} />
             <MessageInput
               chatId={selectedChat.id}
               chatType={selectedChat.type}

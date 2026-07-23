@@ -29,6 +29,20 @@ export const SearchResults = ({ results, loading, onSelectUser }) => {
               <span className={styles.chatTitle}>{foundUser.nickname}</span>
             </div>
             <span className={styles.lastMsg}>{foundUser.email}</span>
+            {foundUser.chatId && foundUser.isOnline !== undefined && (
+              <span className={styles.lastMsg}>
+                {foundUser.isOnline
+                  ? "Online"
+                  : foundUser.lastSeen
+                    ? `Last seen ${new Date(
+                        foundUser.lastSeen,
+                      ).toLocaleDateString([], {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })}`
+                    : "Offline"}
+              </span>
+            )}
           </div>
         </div>
       ))}
