@@ -24,4 +24,12 @@ export const User = client.define("user", {
   activationToken: {
     type: DataTypes.STRING,
   },
+  isOnline: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  lastSeen: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
 });

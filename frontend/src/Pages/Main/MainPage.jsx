@@ -12,48 +12,41 @@ import { chatService } from "../../services/chatService";
 import {
   mapChatsToViewModel,
   mapChatToViewModel,
-} from "../../utils/chat.adapter"; // 👈 Импортируем оба маппера
+  formatPresenceLabel,
+} from "../../utils/chat.adapter";
 import styles from "./MainPage.module.scss";
-
-const MOCK_ROOMS = [
-  {
-    id: 101,
-    name: "General Chat",
-    members: 142,
-    desc: "Main public room for everyone",
-  },
-  {
-    id: 102,
-    name: "React & Tech",
-    members: 58,
-    desc: "Frontend discussions & architecture",
-  },
-  { id: 103, name: "Random & Memes", members: 89, desc: "Off-topic lounge" },
-];
+import { useSocket } from "../../Context/useSocket";
 
 export const MainPage = () => {
   const { user, logout } = useContext(AuthContext);
+  const { onMessage, onUserStatusChange, onUserTyping } = useSocket();
   const { chatId } = useParams();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("direct");
   const [searchQuery, setSearchQuery] = useState("");
-  const [chats, setChats] = useState([]); // Хранит список постоянных чатов
-  const [searchResults, setSearchResults] = useState([]); // 👈 Отдельный стейт для поиска
+  const [chats, setChats] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
 
   const selectedChat = chats.find((c) => String(c.id) === String(chatId));
-
-  const filteredRooms = MOCK_ROOMS.filter((r) =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
       console.error("Logout failed", error);
+    }
+  };
+
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+
+    if (query.trim()) {
+      setLoadingSearch(true);
+    } else {
+      setLoadingSearch(false);
+      setSearchResults([]);
     }
   };
 
@@ -66,25 +59,22 @@ export const MainPage = () => {
     try {
       let targetChatId = foundUser.chatId;
 
-      // Если чата с юзером ещё нет на фронтенде — запрашиваем/создаём его на бэкенде
       if (!targetChatId) {
         const rawChat = await chatService.createDirectChat(foundUser.id);
         const formattedChat = mapChatToViewModel(rawChat, user.id);
 
-        // Добавляем новый чат в начало списка
         setChats((prev) => [formattedChat, ...prev]);
 
         targetChatId = formattedChat.id;
       }
 
-      setSearchQuery(""); // Сбрасываем поиск, чтобы вернуть обычный список чатов
+      setSearchQuery("");
       navigate(`/main/${targetChatId}`);
     } catch (error) {
       console.error("Ошибка при открытии чата из поиска:", error);
     }
   };
 
-  // Загрузка постоянных чатов пользователя
   useEffect(() => {
     if (!user?.id) return;
 
@@ -94,14 +84,84 @@ export const MainPage = () => {
     });
   }, [user?.id]);
 
-  // Глобальный поиск при вводе в инпут
+  useEffect(() => {
+    const unsubscribe = onMessage((incomingMessage) => {
+      if (incomingMessage) {
+        setChats((prevChats) =>
+          prevChats
+            .map((chat) =>
+              String(chat.id) === String(incomingMessage.chatId)
+                ? {
+                    ...chat,
+                    lastMessageText: incomingMessage.text,
+                    time: new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                    senderPrefix:
+                      String(incomingMessage.senderId) === String(user.id)
+                        ? "You: "
+                        : "",
+                  }
+                : chat,
+            )
+            .sort((leftChat, rightChat) => {
+              if (String(leftChat.id) === String(incomingMessage.chatId)) {
+                return -1;
+              }
+              if (String(rightChat.id) === String(incomingMessage.chatId)) {
+                return 1;
+              }
+              return 0;
+            }),
+        );
+      }
+    });
+
+    // Отписываемся при размонтировании
+    return unsubscribe;
+  }, [user?.id, onMessage]);
+
+  useEffect(() => {
+    const unsubscribe = onUserStatusChange(({ userId, isOnline, lastSeen }) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          String(chat.partnerId) === String(userId)
+            ? {
+                ...chat,
+                online: isOnline,
+                lastSeen,
+                presenceLabel: formatPresenceLabel({ isOnline, lastSeen }),
+              }
+            : chat,
+        ),
+      );
+    });
+
+    return unsubscribe;
+  }, [onUserStatusChange]);
+
+  useEffect(() => {
+    const unsubscribe = onUserTyping(({ chatId, userId, isTyping }) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          String(chat.partnerId) === String(userId)
+            ? {
+                ...chat,
+                partnerIsTyping: isTyping,
+              }
+            : chat,
+        ),
+      );
+    });
+
+    return unsubscribe;
+  }, [onUserTyping]);
+
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setSearchResults([]);
       return;
     }
-
-    setLoadingSearch(true);
 
     const timerId = setTimeout(() => {
       chatService
@@ -109,8 +169,13 @@ export const MainPage = () => {
         .then((res) => {
           setSearchResults(res || []);
         })
-        .finally(() => setLoadingSearch(false));
-    }, 1000);
+        .catch((err) => {
+          console.error("Search error:", err);
+        })
+        .finally(() => {
+          setLoadingSearch(false);
+        });
+    }, 500);
 
     return () => {
       clearTimeout(timerId);
@@ -121,14 +186,12 @@ export const MainPage = () => {
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <SidebarHeader
+          user={user}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setSearchQuery={handleSearchChange}
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        {/* Если есть поисковый запрос — показываем SearchResults, иначе — ChatList */}
         {searchQuery.trim() ? (
           <SearchResults
             results={searchResults}
@@ -137,9 +200,7 @@ export const MainPage = () => {
           />
         ) : (
           <ChatList
-            activeTab={activeTab}
             chats={chats}
-            rooms={filteredRooms}
             selectedChatId={chatId}
             onSelect={handleSelectChat}
           />
@@ -160,8 +221,8 @@ export const MainPage = () => {
         )}
       </main>
 
-      {/* Модальное окно настроек */}
       <SettingsModal
+        user={user}
         isOpen={isSettingsOpen}
         onClose={() => setSettingsOpen(false)}
         onLogout={handleLogout}

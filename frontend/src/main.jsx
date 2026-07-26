@@ -3,7 +3,7 @@ import "./index.css";
 import { AuthProvider } from "./Context/AuthContext";
 import { Root } from "./Root";
 import "@fontsource-variable/geist";
-import { SocketProvider } from "./Context/SocketContext";
+import { SocketProvider } from "./Context/SocketContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <AuthProvider>

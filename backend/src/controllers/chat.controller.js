@@ -22,14 +22,6 @@ const createDirectChat = async (req, res) => {
   res.status(201).send(chat);
 };
 
-export const createRoom = async (req, res) => {
-  const { name } = req.body;
-
-  const room = await chatService.createRoom(name, req.user.id);
-
-  res.status(201).send(room);
-};
-
 export const chatController = {
   getUserChats,
   searchUsers,

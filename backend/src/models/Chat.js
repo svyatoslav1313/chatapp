@@ -11,11 +11,6 @@ export const Chat = client.define("chat", {
     primaryKey: true,
     unique: true,
   },
-  type: {
-    type: DataTypes.ENUM("direct", "room"),
-    allowNull: false,
-    defaultValue: "direct",
-  },
   name: {
     type: DataTypes.STRING,
     allowNull: true,

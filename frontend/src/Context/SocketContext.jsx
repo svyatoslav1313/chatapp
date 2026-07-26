@@ -1,22 +1,74 @@
 import { AuthContext } from "./AuthContext";
 import { accessTokenService } from "../services/accessTokenService";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-
-const SocketContext = createContext(null);
+import { SocketContext } from "./SocketContext";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export const SocketProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
   const socketRef = useRef(null);
+  const listenersRef = useRef(new Map());
   const [isConnected, setIsConnected] = useState(false);
-  const [incomingMessage, setIncomingMessage] = useState(null);
   const accessToken = accessTokenService.get();
+
+  const subscribe = useCallback((eventName, callback) => {
+    if (!listenersRef.current.has(eventName)) {
+      listenersRef.current.set(eventName, new Set());
+    }
+
+    listenersRef.current.get(eventName).add(callback);
+
+    return () => {
+      const listeners = listenersRef.current.get(eventName);
+
+      if (!listeners) {
+        return;
+      }
+
+      listeners.delete(callback);
+
+      if (listeners.size === 0) {
+        listenersRef.current.delete(eventName);
+      }
+    };
+  }, []);
+
+  const emit = useCallback((eventName, data) => {
+    const listeners = listenersRef.current.get(eventName);
+
+    if (!listeners) {
+      return;
+    }
+
+    listeners.forEach((listener) => listener(data));
+  }, []);
+
+  const onMessage = useCallback(
+    (callback) => subscribe("new_message", callback),
+    [subscribe],
+  );
+
+  const onUserStatusChange = useCallback(
+    (callback) => subscribe("user_status_changed", callback),
+    [subscribe],
+  );
+
+  const onUserTyping = useCallback(
+    (callback) => subscribe("user_typing", callback),
+    [subscribe],
+  );
 
   useEffect(() => {
     if (!user && !accessToken) {
       if (socketRef.current) {
         socketRef.current.close();
       }
-
       return;
     }
 
@@ -34,9 +86,7 @@ export const SocketProvider = ({ children }) => {
         const payload = JSON.parse(event.data);
         const { event: eventName, data } = payload;
 
-        if (eventName === "new_message") {
-          setIncomingMessage(data);
-        }
+        emit(eventName, data);
       } catch (error) {
         console.error("Failed to parse WS message:", error);
       }
@@ -54,9 +104,9 @@ export const SocketProvider = ({ children }) => {
     return () => {
       ws.close();
     };
-  }, [user, accessToken]);
+  }, [user, accessToken, emit]);
 
-  const joinChat = (chatId) => {
+  const joinChat = useCallback((chatId) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
@@ -65,9 +115,9 @@ export const SocketProvider = ({ children }) => {
         }),
       );
     }
-  };
+  }, []);
 
-  const sendMessage = (chatId, text) => {
+  const sendMessage = useCallback((chatId, text) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
@@ -76,26 +126,54 @@ export const SocketProvider = ({ children }) => {
         }),
       );
     }
-  };
+  }, []);
+
+  const userStartTyping = useCallback((chatId) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          event: "typing_start",
+          data: { chatId },
+        }),
+      );
+    }
+  }, []);
+
+  const userStopTyping = useCallback((chatId) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          event: "typing_stop",
+          data: { chatId },
+        }),
+      );
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      isConnected,
+      onMessage, // 👈 Передаём функцию подписки вместо incomingMessage
+      onUserStatusChange,
+      onUserTyping,
+      joinChat,
+      sendMessage,
+      userStartTyping,
+      userStopTyping,
+    }),
+    [
+      isConnected,
+      onMessage,
+      onUserStatusChange,
+      onUserTyping,
+      joinChat,
+      sendMessage,
+      userStartTyping,
+      userStopTyping,
+    ],
+  );
 
   return (
-    <SocketContext.Provider
-      value={{
-        isConnected,
-        incomingMessage,
-        joinChat,
-        sendMessage,
-      }}
-    >
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
-};
-
-export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error("useSocket must be used within a SocketProvider");
-  }
-  return context;
 };

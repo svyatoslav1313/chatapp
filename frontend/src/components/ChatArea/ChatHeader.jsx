@@ -6,9 +6,11 @@ export const ChatHeader = ({ selectedChat }) => {
     <div className={styles.chatHeaderBar}>
       <div className={styles.activeChatDetails}>
         <h2 className={styles.activeChatTitle}>{selectedChat.title}</h2>
-        {selectedChat.type === "room" && (
+        {selectedChat.partnerIsTyping ? (
+          <span className={styles.activeChatSub}>Typing...</span>
+        ) : (
           <span className={styles.activeChatSub}>
-            {selectedChat.nickname || `${selectedChat.members} members active`}
+            {selectedChat.presenceLabel}
           </span>
         )}
       </div>
