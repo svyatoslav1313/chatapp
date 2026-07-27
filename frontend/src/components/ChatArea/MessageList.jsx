@@ -17,7 +17,9 @@ export const MessageList = ({ userId, chatId }) => {
     messageService
       .getMessages(chatId)
       .then((res) => setMessages(res))
-      .finally(() => requestAnimationFrame(() => scrollToBottom()));
+      .finally(() => {
+        requestAnimationFrame(() => scrollToBottom());
+      });
   }, [chatId]);
 
   useEffect(() => {

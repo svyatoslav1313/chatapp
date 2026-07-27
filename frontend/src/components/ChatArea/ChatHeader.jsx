@@ -1,19 +1,31 @@
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Menu } from "lucide-react";
 import styles from "./ChatHeader.module.scss";
 
-export const ChatHeader = ({ selectedChat }) => {
+export const ChatHeader = ({ selectedChat, onOpenSidebar }) => {
   return (
     <div className={styles.chatHeaderBar}>
-      <div className={styles.activeChatDetails}>
-        <h2 className={styles.activeChatTitle}>{selectedChat.title}</h2>
-        {selectedChat.partnerIsTyping ? (
-          <span className={styles.activeChatSub}>Typing...</span>
-        ) : (
-          <span className={styles.activeChatSub}>
-            {selectedChat.presenceLabel}
-          </span>
-        )}
+      <div className={styles.headerLeft}>
+        {/* Кнопка открытия меню на мобильных */}
+        <button
+          className={styles.menuButton}
+          onClick={onOpenSidebar}
+          title="Open menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div className={styles.activeChatDetails}>
+          <h2 className={styles.activeChatTitle}>{selectedChat.title}</h2>
+          {selectedChat.partnerIsTyping ? (
+            <span className={styles.activeChatSub}>Typing...</span>
+          ) : (
+            <span className={styles.activeChatSub}>
+              {selectedChat.presenceLabel}
+            </span>
+          )}
+        </div>
       </div>
+
       <button className={styles.iconButton}>
         <MoreVertical size={18} />
       </button>

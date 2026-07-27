@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import styles from "./AuthenticationPage.module.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
+import { AlertCircle } from "lucide-react";
 
 export const AuthenticationPage = () => {
   const navigate = useNavigate();
@@ -12,10 +13,12 @@ export const AuthenticationPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setPassword("");
+    setError("");
 
     login(email, password)
       .then(() => navigate("/main"))
-      .catch((error) => setError(error));
+      .catch((error) => setError(error.response?.data?.message));
   };
 
   return (
@@ -25,24 +28,30 @@ export const AuthenticationPage = () => {
         <p className={styles.authSubtitle}>Login to your account</p>
         <form className={styles.authForm} onSubmit={handleSubmit}>
           <input
-            type="email" // Use email type to hint browser autofill
+            type="email"
             value={email}
             placeholder="name@example.com"
             className={styles.authInput}
             onChange={(e) => setEmail(e.target.value)}
-            required // Optional: Add HTML5 validation
+            required
           />
           <input
-            type="password" // Use email type to hint browser autofill
+            type="password"
             value={password}
             placeholder="*********"
             className={styles.authInput}
             onChange={(e) => setPassword(e.target.value)}
-            required // Optional: Add HTML5 validation
+            required
           />
           <button type="submit" className={styles.authButtonPrimary}>
             Sign In with Email
           </button>
+          {error && (
+            <div className={styles.error}>
+              <AlertCircle size={16} className={styles.errorIcon} />
+              <span>{error}</span>
+            </div>
+          )}
         </form>
 
         <div className={styles.separator}>

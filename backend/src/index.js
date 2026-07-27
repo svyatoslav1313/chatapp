@@ -10,9 +10,9 @@ import cookieParser from "cookie-parser";
 import { authRouter } from "./routers/auth.route.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { chatRouter } from "./routers/chat.route.js";
+import { userRouter } from "./routers/user.route.js";
 import { messageRouter } from "./routers/message.route.js";
 
-// 1. Импортируем подключение и модели
 import { client } from "./utils/db.js";
 import "./models/index.js";
 
@@ -31,15 +31,14 @@ app.use(
 );
 
 app.use(authRouter);
+app.use("/user", userRouter);
 app.use("/chats", chatRouter);
 app.use("/message", messageRouter);
 
 app.use(errorMiddleware);
 
-// 2. Оборачиваем запуск в async-функцию
 async function startServer() {
   try {
-    // Подключаемся к Neon и создаём/обновляем таблицы (БЕЗ удаления данных)
     await client.sync({ alter: true });
     console.log("Database synchronized successfully!");
 

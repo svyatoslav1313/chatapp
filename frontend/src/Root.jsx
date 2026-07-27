@@ -7,6 +7,7 @@ import { RequireAuth } from "./components/RequireAuth";
 import { RoomPage } from "./Pages/RoomPage";
 import { Registration } from "./Pages/Registration";
 import { MainPage } from "./Pages/Main";
+import { SettingsPage } from "./Pages/Settings";
 
 export const Root = () => (
   <BrowserRouter>
@@ -15,6 +16,7 @@ export const Root = () => (
         <Route element={<RequireAuth />}>
           <Route index element={<Navigate to="/main" replace />} />
           <Route path="main/:chatId?" element={<MainPage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="lobby" element={<Lobby />} />
           <Route path="room/:roomId" element={<RoomPage />} />
         </Route>

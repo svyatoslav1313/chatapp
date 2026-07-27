@@ -13,17 +13,31 @@ export const AuthProvider = ({ children }) => {
     void checkAuth();
   }, []);
 
+  const updateUser = (user) => {
+    setUser(user);
+  };
+
   async function activate() {}
 
   async function registration(name, nickname, email, password) {
-    return authService.registration(name, nickname, email, password);
+    try {
+      return await authService.registration(name, nickname, email, password);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async function login(email, password) {
-    const { user, accessToken } = await authService.login(email, password);
+    try {
+      const { user, accessToken } = await authService.login(email, password);
 
-    accessTokenService.save(accessToken);
-    setUser(user);
+      accessTokenService.save(accessToken);
+      setUser(user);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async function checkAuth() {
@@ -47,6 +61,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = useMemo(
     () => ({
+      updateUser,
       user,
       isChecked,
       activate,

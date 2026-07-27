@@ -6,7 +6,6 @@ import { SearchResults } from "../../components/Sidebar/SearchResults"; // 👈 
 import { ChatHeader } from "../../components/ChatArea/ChatHeader";
 import { MessageList } from "../../components/ChatArea/MessageList";
 import { MessageInput } from "../../components/ChatArea/MessageInput";
-import { SettingsModal } from "../../components/Settings/SettingsModal";
 import { AuthContext } from "../../Context/AuthContext";
 import { chatService } from "../../services/chatService";
 import {
@@ -18,7 +17,7 @@ import styles from "./MainPage.module.scss";
 import { useSocket } from "../../Context/useSocket";
 
 export const MainPage = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { onMessage, onUserStatusChange, onUserTyping } = useSocket();
   const { chatId } = useParams();
   const navigate = useNavigate();
@@ -26,18 +25,11 @@ export const MainPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [chats, setChats] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
 
-  const selectedChat = chats.find((c) => String(c.id) === String(chatId));
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
+  const selectedChat = chats.find((c) => String(c.id) === String(chatId));
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
@@ -52,6 +44,7 @@ export const MainPage = () => {
 
   const handleSelectChat = (selectedChatId) => {
     navigate(`/main/${selectedChatId}`);
+    setIsSidebarOpen(false);
   };
 
   // 👈 Логика клика по найденному в поиске пользователю
@@ -70,6 +63,7 @@ export const MainPage = () => {
 
       setSearchQuery("");
       navigate(`/main/${targetChatId}`);
+      setIsSidebarOpen(false);
     } catch (error) {
       console.error("Ошибка при открытии чата из поиска:", error);
     }
@@ -142,7 +136,7 @@ export const MainPage = () => {
   }, [onUserStatusChange]);
 
   useEffect(() => {
-    const unsubscribe = onUserTyping(({ chatId, userId, isTyping }) => {
+    const unsubscribe = onUserTyping(({ userId, isTyping }) => {
       setChats((prevChats) =>
         prevChats.map((chat) =>
           String(chat.partnerId) === String(userId)
@@ -184,12 +178,17 @@ export const MainPage = () => {
 
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
+      <aside
+        className={`${styles.sidebar} ${
+          isSidebarOpen ? styles.sidebarOpen : ""
+        }`}
+      >
         <SidebarHeader
           user={user}
           searchQuery={searchQuery}
           setSearchQuery={handleSearchChange}
-          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenSettings={() => navigate("/settings")}
+          onCloseSidebar={() => setIsSidebarOpen(false)}
         />
 
         {searchQuery.trim() ? (
@@ -210,7 +209,10 @@ export const MainPage = () => {
       <main className={styles.chatArea}>
         {chatId && selectedChat ? (
           <>
-            <ChatHeader selectedChat={selectedChat} />
+            <ChatHeader
+              selectedChat={selectedChat}
+              onOpenSidebar={() => setIsSidebarOpen(true)}
+            />
             <MessageList userId={user.id} chatId={selectedChat.id} />
             <MessageInput chatId={selectedChat.id} />
           </>
@@ -220,13 +222,6 @@ export const MainPage = () => {
           </div>
         )}
       </main>
-
-      <SettingsModal
-        user={user}
-        isOpen={isSettingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        onLogout={handleLogout}
-      />
     </div>
   );
 };

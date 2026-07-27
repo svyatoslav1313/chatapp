@@ -15,8 +15,20 @@ const registration = async (req, res) => {
     password: validatePassword(password),
   };
 
-  if (errors.name || errors.email || errors.password) {
+  if (errors.name || errors.nickname || errors.email || errors.password) {
     throw ApiError.badRequest("Bad request", errors);
+  }
+
+  const checkNickname = await userService.findByNickname(nickname);
+
+  if (checkNickname) {
+    throw ApiError.badRequest("An account with this nickname already exists");
+  }
+
+  const checkEmail = await userService.findByEmail(email);
+
+  if (checkEmail) {
+    throw ApiError.badRequest("An account with this email already exists");
   }
 
   const hashedPassword = await bcrypt.hash(password, 5);
@@ -32,13 +44,13 @@ const login = async (req, res) => {
   const user = await userService.findByEmail(email);
 
   if (!user) {
-    throw ApiError.badRequest("Invalid email or password");
+    throw ApiError.badRequest("Incorrect email or password");
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
-    throw ApiError.badRequest("Invalid email or password");
+    throw ApiError.badRequest("Incorrect email or password");
   }
 
   await generateTokens(res, user);

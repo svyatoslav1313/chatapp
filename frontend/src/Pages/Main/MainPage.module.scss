@@ -24,10 +24,11 @@
   width: 100vw;
   background-color: var(--color-bg-main);
   color: var(--text-main);
-  font-family: var(--font-sans);
   overflow: hidden;
+  position: relative;
 }
 
+/* 💻 ДЕСКТОПНЫЕ СТИЛИ (по умолчанию сайдбар всегда виден) */
 .sidebar {
   width: 340px;
   min-width: 340px;
@@ -35,9 +36,6 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  opacity: 0;
-  animation: fadeInUp 0.4s var(--ease-out-cubic, cubic-bezier(0.16, 1, 0.3, 1))
-    forwards;
 }
 
 .chatArea {
@@ -58,4 +56,32 @@
   font-size: 0.875rem;
   opacity: 0;
   animation: fadeIn 0.5s ease forwards 0.2s;
+}
+
+/* 📱 МОБИЛЬНАЯ АДАПТАЦИЯ (работает только <= 768px) */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 320px;
+    min-width: unset;
+    z-index: 100;
+
+    /* По умолчанию спрятан за левым краем экрана */
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+
+    /* Выезжает только если есть класс sidebarOpen */
+    &.sidebarOpen {
+      transform: translateX(0);
+    }
+  }
+
+  .chatArea {
+    width: 100vw;
+  }
 }
