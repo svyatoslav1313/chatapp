@@ -95,12 +95,12 @@ const createDirectChat = async (currentUserId, targetUserId) => {
   const chatIds = userChats.map((usChat) => usChat.chatId);
 
   let chat = await Chat.findOne({
-    where: { id: chatIds, type: "direct" },
+    where: { id: chatIds },
     include: [{ model: User, where: { id: targetUserId } }],
   });
 
   if (!chat) {
-    chat = await Chat.create({ type: "direct" });
+    chat = await Chat.create();
 
     await UserChat.bulkCreate([
       { userId: currentUserId, chatId: chat.id },
