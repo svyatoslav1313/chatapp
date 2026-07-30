@@ -18,7 +18,8 @@ import { useSocket } from "../../Context/useSocket";
 
 export const MainPage = () => {
   const { user } = useContext(AuthContext);
-  const { onMessage, onUserStatusChange, onUserTyping } = useSocket();
+  const { onMessage, onMessageDelete, onUserStatusChange, onUserTyping } =
+    useSocket();
   const { chatId } = useParams();
   const navigate = useNavigate();
 
@@ -112,9 +113,32 @@ export const MainPage = () => {
       }
     });
 
-    // Отписываемся при размонтировании
     return unsubscribe;
   }, [user?.id, onMessage]);
+
+  useEffect(() => {
+    const unsubscribe = onMessageDelete(
+      ({ chatId, messageId, lastMessage }) => {
+        setChats((prevChats) =>
+          prevChats.map((chat) => {
+            if (
+              String(chat.id) === String(chatId) &&
+              String(chat.lastMessageId) === String(messageId)
+            ) {
+              return {
+                ...chat,
+                lastMessageText: lastMessage?.text || "No message yet",
+              };
+            }
+
+            return chat;
+          }),
+        );
+      },
+    );
+
+    return unsubscribe;
+  }, [user?.id, onMessageDelete]);
 
   useEffect(() => {
     const unsubscribe = onUserStatusChange(({ userId, isOnline, lastSeen }) => {

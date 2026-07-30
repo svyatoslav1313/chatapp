@@ -3,9 +3,10 @@ import { messageService } from "../../services/messageService.js";
 import styles from "./MessageList.module.scss";
 import { formatMessageTime } from "../../utils/chat.adapter.js";
 import { useSocket } from "../../Context/useSocket";
+import { Trash } from "lucide-react";
 
 export const MessageList = ({ userId, chatId }) => {
-  const { onMessage } = useSocket();
+  const { onMessage, deleteMessage, onMessageDelete } = useSocket();
   const messagesEndRef = useRef(null);
   const [messages, setMessages] = useState([]);
 
@@ -34,6 +35,16 @@ export const MessageList = ({ userId, chatId }) => {
     return unsubscribe;
   }, [chatId, onMessage]);
 
+  useEffect(() => {
+    const unsubscribe = onMessageDelete(({ messageId }) => {
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message.id !== messageId),
+      );
+    });
+
+    return unsubscribe;
+  }, [onMessageDelete]);
+
   return (
     <div className={styles.messagesContainer}>
       {messages.map((message) => (
@@ -46,6 +57,13 @@ export const MessageList = ({ userId, chatId }) => {
             <span className={styles.msgTime}>
               {formatMessageTime(message.createdAt)}
             </span>
+            {message.senderId === userId && (
+              <Trash
+                size={14}
+                className={styles.icon}
+                onClick={() => deleteMessage(chatId, message.id)}
+              />
+            )}
           </div>
         </div>
       ))}

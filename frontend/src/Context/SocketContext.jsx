@@ -54,6 +54,11 @@ export const SocketProvider = ({ children }) => {
     [subscribe],
   );
 
+  const onMessageDelete = useCallback(
+    (callback) => subscribe("message_delete", callback),
+    [subscribe],
+  );
+
   const onUserStatusChange = useCallback(
     (callback) => subscribe("user_status_changed", callback),
     [subscribe],
@@ -128,6 +133,17 @@ export const SocketProvider = ({ children }) => {
     }
   }, []);
 
+  const deleteMessage = useCallback((chatId, messageId) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          event: "delete_message",
+          data: { chatId, messageId },
+        }),
+      );
+    }
+  }, []);
+
   const userStartTyping = useCallback((chatId) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
@@ -154,20 +170,24 @@ export const SocketProvider = ({ children }) => {
     () => ({
       isConnected,
       onMessage, // 👈 Передаём функцию подписки вместо incomingMessage
+      onMessageDelete,
       onUserStatusChange,
       onUserTyping,
       joinChat,
       sendMessage,
+      deleteMessage,
       userStartTyping,
       userStopTyping,
     }),
     [
       isConnected,
       onMessage,
+      onMessageDelete,
       onUserStatusChange,
       onUserTyping,
       joinChat,
       sendMessage,
+      deleteMessage,
       userStartTyping,
       userStopTyping,
     ],

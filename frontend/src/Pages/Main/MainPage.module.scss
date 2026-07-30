@@ -21,14 +21,12 @@
 .layout {
   display: flex;
   height: 100vh;
-  width: 100vw;
   background-color: var(--color-bg-main);
   color: var(--text-main);
   overflow: hidden;
   position: relative;
 }
 
-/* 💻 ДЕСКТОПНЫЕ СТИЛИ (по умолчанию сайдбар всегда виден) */
 .sidebar {
   width: 340px;
   min-width: 340px;
@@ -58,7 +56,6 @@
   animation: fadeIn 0.5s ease forwards 0.2s;
 }
 
-/* 📱 МОБИЛЬНАЯ АДАПТАЦИЯ (работает только <= 768px) */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -70,18 +67,12 @@
     min-width: unset;
     z-index: 100;
 
-    /* По умолчанию спрятан за левым краем экрана */
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
 
-    /* Выезжает только если есть класс sidebarOpen */
     &.sidebarOpen {
       transform: translateX(0);
     }
-  }
-
-  .chatArea {
-    width: 100vw;
   }
 }

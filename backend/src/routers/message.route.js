@@ -17,3 +17,9 @@ messageRouter.post(
   authMiddleware,
   catchError(messageController.sendMessage),
 );
+
+messageRouter.delete(
+  "/:messageId",
+  authMiddleware,
+  catchError(messageController.deleteMessage),
+);

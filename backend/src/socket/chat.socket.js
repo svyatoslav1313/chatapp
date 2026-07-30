@@ -167,6 +167,49 @@ export const initWebSocket = (wss) => {
             });
             break;
           }
+          case "delete_message": {
+            const { chatId, messageId } = data;
+            const currentUserId = ws.user.id;
+
+            const senderId = await messageService.getMessageSenderId(messageId);
+
+            if (!senderId || senderId !== currentUserId) {
+              ws.send(
+                JSON.stringify({
+                  event: "error",
+                  data: {
+                    message: "You don't have access to delete this message",
+                  },
+                }),
+              );
+
+              break;
+            }
+
+            const lastMessage = await messageService.deleteMessage(
+              messageId,
+              chatId,
+            );
+
+            const participants = await UserChat.findAll({
+              where: { chatId },
+              attributes: ["userId"],
+              raw: true,
+            });
+
+            const payload = {
+              event: "message_delete",
+              data: {
+                chatId,
+                messageId,
+                lastMessage,
+              },
+            };
+
+            participants.forEach(({ userId }) => {
+              broadCastToUser(userId, payload);
+            });
+          }
           case "typing_start":
           case "typing_stop": {
             const { chatId } = data;

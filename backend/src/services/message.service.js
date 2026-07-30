@@ -8,14 +8,12 @@ const getByChatId = async (chatId, userId) => {
     throw ApiError.badRequest("Чат не найден");
   }
 
-  if (chat.type === "direct") {
-    const isParticipant = await UserChat.findOne({
-      where: { chatId, userId },
-    });
+  const isParticipant = await UserChat.findOne({
+    where: { chatId, userId },
+  });
 
-    if (!isParticipant) {
-      throw ApiError.badRequest("У вас нет доступа к этому чату");
-    }
+  if (!isParticipant) {
+    throw ApiError.badRequest("У вас нет доступа к этому чату");
   }
 
   return await Message.findAll({
@@ -49,7 +47,35 @@ const sendMessage = async (chatId, senderId, text) => {
   });
 };
 
+const getMessageSenderId = async (messageId) => {
+  const message = await Message.findByPk(messageId, {
+    attributes: ["senderId"],
+  });
+
+  return message ? message.senderId : null;
+};
+
+const deleteMessage = async (messageId, chatId) => {
+  await Message.destroy({ where: { id: messageId } });
+
+  const lastMessage = await Message.findOne({
+    where: { chatId },
+    order: [["createdAt", "DESC"]],
+    include: [
+      {
+        model: User,
+        as: "sender",
+        attributes: ["id", "nickname"],
+      },
+    ],
+  });
+
+  return lastMessage;
+};
+
 export const messageService = {
   getByChatId,
   sendMessage,
+  getMessageSenderId,
+  deleteMessage,
 };
