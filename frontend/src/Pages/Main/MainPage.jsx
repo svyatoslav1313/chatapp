@@ -88,6 +88,7 @@ export const MainPage = () => {
               String(chat.id) === String(incomingMessage.chatId)
                 ? {
                     ...chat,
+                    lastMessageId: incomingMessage.id,
                     lastMessageText: incomingMessage.text,
                     time: new Date().toLocaleTimeString([], {
                       hour: "2-digit",
@@ -127,6 +128,7 @@ export const MainPage = () => {
             ) {
               return {
                 ...chat,
+                lastMessageId: lastMessage?.id || null,
                 lastMessageText: lastMessage?.text || "No message yet",
               };
             }

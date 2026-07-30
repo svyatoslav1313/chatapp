@@ -107,7 +107,7 @@ export const mapChatToViewModel = (chat, currentUserId) => {
     id: chat.id,
     title,
     time: formatChatTime(lastMsgObj?.createdAt || chat.createdAt),
-    lastMessageId: lastMsgObj.id,
+    lastMessageId: lastMsgObj?.id || null,
     lastMessageText: lastMsgText,
     senderPrefix,
     unreadCount: 0, // Можно расширить, когда добавится счетчик непрочитанных
