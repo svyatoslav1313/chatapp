@@ -1,0 +1,93 @@
+.toggle {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.switcher {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.option {
+  min-height: 36px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.optionActive {
+  background-color: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.accents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  // data-accent на кнопке переопределяет --accent для самого образца
+  background-color: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    transform: scale(1.08);
+  }
+}
+
+.swatchActive {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--accent);
+}

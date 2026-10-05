@@ -1,7 +1,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -9,51 +9,108 @@
   }
 }
 
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes typingDot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.messagesWrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  // Лента заезжает под полупрозрачную шапку чата
+  margin-top: calc(-1 * var(--header-height));
+}
+
 .messagesContainer {
   flex: 1;
-  padding: var(--space-md);
+  min-height: 0;
+  padding-block: calc(var(--header-height) + var(--space-md)) var(--space-md);
+  // Колонка сообщений не шире --content-max-width и по центру
+  padding-inline: max(
+    var(--space-md),
+    calc((100% - var(--content-max-width)) / 2)
+  );
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 2px;
+}
+
+.daySeparator {
+  align-self: center;
+  margin: var(--space-sm) 0 var(--space-xs);
+
+  span {
+    display: block;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
 }
 
 .message {
-  max-width: 60%;
+  max-width: min(72%, 560px);
+  margin-top: 10px;
   display: flex;
-  flex-direction: column;
-  opacity: 0;
-  animation: fadeInUp 0.4s var(--ease-out-cubic, cubic-bezier(0.16, 1, 0.3, 1))
-    forwards;
+  align-items: center;
+  gap: 6px;
+  animation: fadeInUp 0.25s var(--ease-out-cubic);
 
-  &:nth-child(1) {
-    animation-delay: 0.25s;
+  &:hover .deleteBtn,
+  .deleteBtn:focus-visible {
+    opacity: 1;
   }
-  &:nth-child(2) {
-    animation-delay: 0.33s;
-  }
-  &:nth-child(3) {
-    animation-delay: 0.41s;
-  }
+}
 
-  &:hover {
-    .icon {
-      display: block;
-    }
-  }
+// Внутри группы сообщения стоят вплотную, а смежные углы почти прямые
+.joinPrev {
+  margin-top: 0;
 }
 
 .incoming {
   align-self: flex-start;
 
   .msgContent {
-    background-color: #ffffff;
-    border: 1px solid var(--color-border);
-    color: var(--text-main);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
   }
 
   .msgTime {
-    color: var(--text-light, #94a3b8);
+    color: var(--text-faint);
+  }
+
+  &.joinPrev .msgContent {
+    border-top-left-radius: 6px;
+  }
+
+  &.joinNext .msgContent {
+    border-bottom-left-radius: 6px;
   }
 }
 
@@ -61,47 +118,211 @@
   align-self: flex-end;
 
   .msgContent {
-    background-color: var(--color-black, #000);
-    color: #ffffff;
+    background-color: var(--accent);
+    border: 1px solid transparent;
+    color: var(--on-accent);
   }
 
   .msgTime {
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  &.joinPrev .msgContent {
+    border-top-right-radius: 6px;
+  }
+
+  &.joinNext .msgContent {
+    border-bottom-right-radius: 6px;
   }
 }
 
 .msgContent {
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 0.875rem;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 0.9375rem;
   line-height: 1.4;
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 2px 10px;
+}
 
-  word-break: break-word;
+.msgText {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .msgTime {
-  display: inline-block;
   white-space: nowrap;
-
-  font-size: 0.65rem;
-  vertical-align: baseline;
+  font-size: 0.6875rem;
+  line-height: 1.6;
 }
 
-.icon {
-  display: none;
+// Сообщение только из эмодзи: крупно и без «пузыря»
+.message.emojiOnly {
+  .msgContent {
+    padding: 0 4px;
+    background-color: transparent;
+    border-color: transparent;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .msgText {
+    font-size: 2.75rem;
+    line-height: 1.15;
+  }
+
+  .msgTime {
+    color: var(--text-faint);
+  }
+}
+
+.deleteBtn {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-faint);
   cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--danger-soft);
+    color: var(--danger);
+  }
+}
+
+.typingBubble {
+  align-self: flex-start;
+  margin-top: 10px;
+  padding: 14px;
+  display: flex;
+  gap: 4px;
+  border-radius: 18px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  animation: fadeInUp 0.25s var(--ease-out-cubic);
+
+  span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+    animation: typingDot 1.2s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+.skeleton {
+  flex-shrink: 0;
+  height: 38px;
+  margin-top: 10px;
+  border-radius: 18px;
+  background-color: var(--surface-3);
+  animation: pulse 1.4s ease-in-out infinite;
+
+  &:nth-child(even) {
+    align-self: flex-end;
+  }
+}
+
+.emptyChat {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.emptyTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.jumpButton {
+  position: absolute;
+  right: var(--space-md);
+  bottom: var(--space-sm);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  animation: fadeInUp 0.2s var(--ease-out-cubic);
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.jumpBadge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background-color: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+// На тач-устройствах нет hover — кнопка удаления видна всегда
+@media (hover: none) {
+  .deleteBtn {
+    opacity: 0.7;
+  }
 }
 
 @media (max-width: 768px) {
   .message {
-    max-width: 82%;
+    max-width: 86%;
   }
 
   .messagesContainer {
-    padding: 12px 8px;
+    padding-block: calc(var(--header-height) + var(--space-sm)) var(--space-sm);
+    padding-inline: var(--space-sm);
+  }
+
+  .jumpButton {
+    right: var(--space-sm);
   }
 }

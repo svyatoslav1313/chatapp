@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import styles from "./Registration.module.scss";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../Context/AuthContext";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, MessageSquareText } from "lucide-react";
+import { ThemeToggle } from "../../components/ThemeToggle/ThemeToggle";
 
 export const Registration = () => {
   const { registration } = useContext(AuthContext);
@@ -43,8 +44,13 @@ export const Registration = () => {
 
   return (
     <div className={styles.regContainer}>
+      <ThemeToggle className={styles.themeToggle} />
       <div className={styles.regCard}>
-        <div className={styles.regLogoContainer}>{/* <Logo /> */}</div>
+        <div className={styles.regLogoContainer}>
+          <div className={styles.logoIconBox}>
+            <MessageSquareText size={20} />
+          </div>
+        </div>
         <h1 className={styles.regTitle}>Create an account</h1>
         <p className={styles.regSubtitle}>
           Enter your email below to create your account

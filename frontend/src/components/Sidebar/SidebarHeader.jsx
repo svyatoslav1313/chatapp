@@ -1,4 +1,5 @@
 import { Search, Settings, MessageSquare } from "lucide-react";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import styles from "./SidebarHeader.module.scss";
 
 export const SidebarHeader = ({
@@ -19,13 +20,17 @@ export const SidebarHeader = ({
             <span className={styles.userStatus}>Online</span>
           </div>
         </div>
-        <button
-          className={styles.iconButton}
-          title="Settings"
-          onClick={onOpenSettings}
-        >
-          <Settings size={18} />
-        </button>
+        <div className={styles.headerActions}>
+          <ThemeToggle />
+          <button
+            className={styles.iconButton}
+            title="Settings"
+            aria-label="Settings"
+            onClick={onOpenSettings}
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </div>
 
       <div className={styles.searchBox}>
@@ -41,7 +46,7 @@ export const SidebarHeader = ({
 
       <div className={styles.tabsContainer}>
         <button className={`${styles.tabBtn} ${styles.activeTab}`}>
-          <MessageSquare size={16} />
+          <MessageSquare size={14} />
           <span>Direct</span>
         </button>
       </div>

@@ -1,81 +1,118 @@
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .chatHeaderBar {
-  padding: var(--space-md);
-  background-color: #ffffff;
-  border-bottom: 1px solid var(--color-border);
+  height: var(--header-height);
+  flex-shrink: 0;
+  padding: 0 var(--space-sm) 0 var(--space-md);
+  // Полупрозрачная шапка: сообщения прокручиваются под ней
+  position: relative;
+  z-index: 2;
+  background-color: color-mix(in srgb, var(--surface) 78%, transparent);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  opacity: 0;
-  animation: fadeInUp 0.4s var(--ease-out-cubic, cubic-bezier(0.16, 1, 0.3, 1))
-    0.15s forwards;
+  gap: var(--space-xs);
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.menuButton,
+.iconButton {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+  }
 }
 
 .menuButton {
   display: none; // Скрыто на десктопе
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: var(--radius-xl, 8px);
-  color: var(--text-muted, #64748b);
+}
+
+.avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--avatar-bg);
+  color: var(--avatar-text);
+  display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast, 0.2s);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
 
-  &:hover {
-    background-color: #f1f5f9;
-    color: var(--text-main);
-  }
+.onlineBadge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--success);
+  border: 2px solid var(--surface);
+}
+
+.activeChatDetails {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
 }
 
 .activeChatTitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .activeChatSub {
   font-size: 0.75rem;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.iconButton {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: var(--radius-xl, 8px);
-  color: var(--text-muted, #64748b);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast, 0.2s);
-
-  &:hover {
-    background-color: #f1f5f9;
-    color: var(--text-main);
-  }
+.typing {
+  color: var(--accent-text);
 }
 
 /* 📱 МОБИЛЬНАЯ АДАПТАЦИЯ */
 @media (max-width: 768px) {
+  .chatHeaderBar {
+    padding: 0 var(--space-xs);
+  }
+
+  .headerLeft {
+    gap: var(--space-xs);
+  }
+
   .menuButton {
     display: flex;
   }

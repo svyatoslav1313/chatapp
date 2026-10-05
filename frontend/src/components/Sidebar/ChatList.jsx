@@ -8,7 +8,7 @@ export const ChatList = ({ chats, selectedChatId, onSelect }) => {
           <div
             key={chat.id}
             className={`${styles.chatItem} ${
-              selectedChatId === chat.id ? styles.selected : ""
+              String(selectedChatId) === String(chat.id) ? styles.selected : ""
             }`}
             onClick={() => onSelect(chat.id)}
           >
@@ -27,7 +27,9 @@ export const ChatList = ({ chats, selectedChatId, onSelect }) => {
 
               <div className={styles.chatSub}>
                 {chat.partnerIsTyping ? (
-                  <span className={styles.lastMsg}>Typing...</span>
+                  <span className={`${styles.lastMsg} ${styles.typing}`}>
+                    Typing...
+                  </span>
                 ) : (
                   <span className={styles.lastMsg}>
                     {chat.senderPrefix && <b>{chat.senderPrefix}</b>}

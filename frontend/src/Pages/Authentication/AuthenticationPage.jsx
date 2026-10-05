@@ -2,7 +2,8 @@ import { useContext, useState } from "react";
 import styles from "./AuthenticationPage.module.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, MessageSquareText } from "lucide-react";
+import { ThemeToggle } from "../../components/ThemeToggle/ThemeToggle";
 
 export const AuthenticationPage = () => {
   const navigate = useNavigate();
@@ -23,7 +24,13 @@ export const AuthenticationPage = () => {
 
   return (
     <div className={styles.authContainer}>
+      <ThemeToggle className={styles.themeToggle} />
       <div className={styles.authCard}>
+        <div className={styles.logoContainer}>
+          <div className={styles.logoIconBox}>
+            <MessageSquareText className={styles.logoIcon} />
+          </div>
+        </div>
         <h1 className={styles.authTitle}>Welcome back</h1>
         <p className={styles.authSubtitle}>Login to your account</p>
         <form className={styles.authForm} onSubmit={handleSubmit}>

@@ -80,6 +80,37 @@ export const formatMessageTime = (isoString) => {
   return `${formattedDate}, ${time}`;
 };
 
+export const formatMessageClock = (isoString) => {
+  if (!isoString) return "";
+
+  return new Date(isoString).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+export const formatDayLabel = (isoString) => {
+  const date = new Date(isoString);
+  const now = new Date();
+
+  if (date.toDateString() === now.toDateString()) {
+    return "Today";
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString([], {
+    day: "numeric",
+    month: "long",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
+};
+
 /**
  * Адаптирует сырой объект Chat из API под удобную ViewModel для UI
  */

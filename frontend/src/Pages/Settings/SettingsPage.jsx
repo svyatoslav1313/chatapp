@@ -7,13 +7,44 @@ import {
   Lock,
   LogOut,
   Mail,
-  Settings,
+  Palette,
+  ShieldCheck,
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
 import styles from "./SettingsPage.module.scss";
 import { UserContext } from "../../Context/UserContext";
+import {
+  AccentPicker,
+  ThemeSwitcher,
+} from "../../components/ThemeToggle/ThemeToggle";
+
+const SECTIONS = [
+  { key: "profile", label: "Profile", Icon: User },
+  { key: "account", label: "Account", Icon: ShieldCheck },
+  { key: "appearance", label: "Appearance", Icon: Palette },
+];
+
+const FormActions = ({ label, saved, error }) => (
+  <div className={styles.actions}>
+    <button type="submit" className={styles.saveBtn}>
+      {saved ? (
+        <>
+          <Check size={16} /> Saved!
+        </>
+      ) : (
+        label
+      )}
+    </button>
+    {error && (
+      <div className={styles.error}>
+        <AlertCircle size={16} className={styles.errorIcon} />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
 
 export const SettingsPage = () => {
   const navigate = useNavigate();
@@ -28,6 +59,7 @@ export const SettingsPage = () => {
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [savedSections, setSavedSections] = useState({});
+  const [activeSection, setActiveSection] = useState("profile");
 
   const [nameError, setNameError] = useState("");
   const [nicknameError, setNicknameError] = useState("");
@@ -109,212 +141,273 @@ export const SettingsPage = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
+      <header className={styles.topbar}>
+        <div className={styles.topbarInner}>
           <button
             type="button"
             className={styles.backButton}
+            title="Back to chats"
+            aria-label="Back to chats"
             onClick={() => navigate("/main")}
           >
-            <ArrowLeft size={16} />
-            Back to chats
+            <ArrowLeft size={20} />
           </button>
+          <h1 className={styles.title}>Settings</h1>
+        </div>
+      </header>
 
-          <div className={styles.headerCopy}>
-            <span className={styles.kicker}>
-              <Settings size={14} />
-              Account
-            </span>
-            <h1 className={styles.title}>Settings</h1>
-            <p className={styles.subtitle}>
-              Manage your profile details and password.
-            </p>
+      <div className={styles.shell}>
+        <aside className={styles.nav}>
+          <div className={styles.profile}>
+            <div className={styles.avatar}>
+              {user?.name?.[0]?.toUpperCase() || "?"}
+            </div>
+            <div className={styles.profileText}>
+              <span className={styles.profileName}>{user?.name}</span>
+              <span className={styles.profileEmail}>{user?.email}</span>
+            </div>
           </div>
-        </header>
 
-        <div className={styles.card}>
-          <div className={styles.body}>
-            <div className={styles.section}>
-              <span className={styles.sectionLabel}>Profile Info</span>
+          <div className={styles.tabs} role="tablist" aria-label="Settings">
+            {SECTIONS.map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={activeSection === key}
+                className={`${styles.tab} ${
+                  activeSection === key ? styles.tabActive : ""
+                }`}
+                onClick={() => setActiveSection(key)}
+              >
+                <Icon size={18} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
 
-              <form onSubmit={handleNameSave} className={styles.fieldGroup}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Name</label>
+        <main className={styles.content}>
+          {activeSection === "profile" && (
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Profile</h2>
+                <p className={styles.sectionHint}>
+                  How other people see you in chats and search.
+                </p>
+              </div>
+
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Name</h3>
+                  <p className={styles.blockHint}>
+                    Shown next to your messages.
+                  </p>
+                </div>
+                <form onSubmit={handleNameSave} className={styles.blockBody}>
                   <div className={styles.inputWrapper}>
                     <User size={16} className={styles.icon} />
                     <input
                       type="text"
+                      aria-label="Name"
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       className={styles.input}
                       required
                     />
                   </div>
-                </div>
-                <div className={styles.actions}>
-                  <button type="submit" className={styles.saveBtn}>
-                    {savedSections.name ? (
-                      <>
-                        <Check size={16} /> Saved!
-                      </>
-                    ) : (
-                      "Save Name"
-                    )}
-                  </button>
-                  {nameError && (
-                    <div className={styles.error}>
-                      <AlertCircle size={16} className={styles.errorIcon} />
-                      <span>{nameError}</span>
-                    </div>
-                  )}
-                </div>
-              </form>
+                  <FormActions
+                    label="Save Name"
+                    saved={savedSections.name}
+                    error={nameError}
+                  />
+                </form>
+              </div>
 
-              <form onSubmit={handleNicknameSave} className={styles.fieldGroup}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Nickname</label>
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Nickname</h3>
+                  <p className={styles.blockHint}>
+                    People find you by it in search.
+                  </p>
+                </div>
+                <form
+                  onSubmit={handleNicknameSave}
+                  className={styles.blockBody}
+                >
                   <div className={styles.inputWrapper}>
                     <AtSign size={16} className={styles.icon} />
                     <input
                       type="text"
+                      aria-label="Nickname"
                       value={nickname}
                       onChange={(event) => setNickname(event.target.value)}
                       className={styles.input}
                       required
                     />
                   </div>
-                </div>
-                <div className={styles.actions}>
-                  <button type="submit" className={styles.saveBtn}>
-                    {savedSections.nickname ? (
-                      <>
-                        <Check size={16} /> Saved!
-                      </>
-                    ) : (
-                      "Save Nickname"
-                    )}
-                  </button>
-                  {nicknameError && (
-                    <div className={styles.error}>
-                      <AlertCircle size={16} className={styles.errorIcon} />
-                      <span>{nicknameError}</span>
-                    </div>
-                  )}
-                </div>
-              </form>
-
-              <form onSubmit={handleEmailSave} className={styles.fieldGroup}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Email Address</label>
-                  <div className={styles.inputWrapper}>
-                    <Mail size={16} className={styles.icon} />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      className={styles.input}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className={styles.field} style={{ marginTop: "1rem" }}>
-                  <label className={styles.label}>Current Password</label>
-                  <div className={styles.inputWrapper}>
-                    <Lock size={16} className={styles.icon} />
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={emailPass}
-                      onChange={(event) => setEmailPass(event.target.value)}
-                      className={styles.input}
-                    />
-                  </div>
-                </div>
-                <div className={styles.actions}>
-                  <button type="submit" className={styles.saveBtn}>
-                    {savedSections.email ? (
-                      <>
-                        <Check size={16} /> Saved!
-                      </>
-                    ) : (
-                      "Save Email"
-                    )}
-                  </button>
-                  {emailError && (
-                    <div className={styles.error}>
-                      <AlertCircle size={16} className={styles.errorIcon} />
-                      <span>{emailError}</span>
-                    </div>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            <hr className={styles.divider} />
-
-            <form onSubmit={handlePasswordSave} className={styles.section}>
-              <span className={styles.sectionLabel}>Change Password</span>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Current Password</label>
-                <div className={styles.inputWrapper}>
-                  <Lock size={16} className={styles.icon} />
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    className={styles.input}
+                  <FormActions
+                    label="Save Nickname"
+                    saved={savedSections.nickname}
+                    error={nicknameError}
                   />
-                </div>
+                </form>
+              </div>
+            </section>
+          )}
+
+          {activeSection === "account" && (
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Account</h2>
+                <p className={styles.sectionHint}>
+                  Your sign-in details and session.
+                </p>
               </div>
 
-              <div className={styles.field}>
-                <label className={styles.label}>New Password</label>
-                <div className={styles.inputWrapper}>
-                  <Lock size={16} className={styles.icon} />
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
-                    className={styles.input}
-                  />
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Email address</h3>
+                  <p className={styles.blockHint}>
+                    Confirm the change with your current password.
+                  </p>
                 </div>
-              </div>
-              <div className={styles.actions}>
-                <button type="submit" className={styles.saveBtn}>
-                  {savedSections.password ? (
-                    <>
-                      <Check size={16} /> Saved!
-                    </>
-                  ) : (
-                    "Save Password"
-                  )}
-                </button>
-                {passwordError && (
-                  <div className={styles.error}>
-                    <AlertCircle size={16} className={styles.errorIcon} />
-                    <span>{passwordError}</span>
+                <form onSubmit={handleEmailSave} className={styles.blockBody}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Email Address</label>
+                    <div className={styles.inputWrapper}>
+                      <Mail size={16} className={styles.icon} />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        className={styles.input}
+                        required
+                      />
+                    </div>
                   </div>
-                )}
+                  <div className={styles.field}>
+                    <label className={styles.label}>Current Password</label>
+                    <div className={styles.inputWrapper}>
+                      <Lock size={16} className={styles.icon} />
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={emailPass}
+                        onChange={(event) => setEmailPass(event.target.value)}
+                        className={styles.input}
+                      />
+                    </div>
+                  </div>
+                  <FormActions
+                    label="Save Email"
+                    saved={savedSections.email}
+                    error={emailError}
+                  />
+                </form>
               </div>
-            </form>
-          </div>
 
-          <hr className={styles.divider} />
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Password</h3>
+                  <p className={styles.blockHint}>
+                    Enter your current password, then a new one.
+                  </p>
+                </div>
+                <form
+                  onSubmit={handlePasswordSave}
+                  className={styles.blockBody}
+                >
+                  <div className={styles.field}>
+                    <label className={styles.label}>Current Password</label>
+                    <div className={styles.inputWrapper}>
+                      <Lock size={16} className={styles.icon} />
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        className={styles.input}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>New Password</label>
+                    <div className={styles.inputWrapper}>
+                      <Lock size={16} className={styles.icon} />
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        className={styles.input}
+                      />
+                    </div>
+                  </div>
+                  <FormActions
+                    label="Save Password"
+                    saved={savedSections.password}
+                    error={passwordError}
+                  />
+                </form>
+              </div>
 
-          <footer className={styles.footer}>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={styles.logoutBtn}
-            >
-              <LogOut size={16} />
-              <span>Log Out</span>
-            </button>
-          </footer>
-        </div>
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Session</h3>
+                  <p className={styles.blockHint}>
+                    Sign out of your account on this device.
+                  </p>
+                </div>
+                <div className={styles.blockBody}>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className={styles.logoutBtn}
+                  >
+                    <LogOut size={16} />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === "appearance" && (
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Appearance</h2>
+                <p className={styles.sectionHint}>
+                  Saved in this browser only.
+                </p>
+              </div>
+
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Theme</h3>
+                  <p className={styles.blockHint}>
+                    System follows your device setting.
+                  </p>
+                </div>
+                <div className={styles.blockBody}>
+                  <ThemeSwitcher />
+                </div>
+              </div>
+
+              <div className={styles.block}>
+                <div className={styles.blockInfo}>
+                  <h3 className={styles.blockTitle}>Accent color</h3>
+                  <p className={styles.blockHint}>
+                    Used for buttons, links and your messages.
+                  </p>
+                </div>
+                <div className={styles.blockBody}>
+                  <AccentPicker />
+                </div>
+              </div>
+            </section>
+          )}
+        </main>
       </div>
     </div>
   );

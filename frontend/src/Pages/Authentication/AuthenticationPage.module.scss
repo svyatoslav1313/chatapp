@@ -3,7 +3,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -11,25 +11,22 @@
   }
 }
 
-@keyframes cardAppear {
-  from {
-    opacity: 0;
-    transform: scale(0.97) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
 .authContainer {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: var(--color-white);
-  color: var(--text-main);
-  font-family: var(--font-sans);
+  min-height: 100dvh;
+  padding: var(--space-md);
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.themeToggle {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
 }
 
 .authCard {
@@ -39,28 +36,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
-  animation: cardAppear 1s var(--ease-out-cubic) forwards;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-xl);
+  animation: fadeInUp 0.5s var(--ease-out-cubic);
 }
 
 .logoContainer {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--space-md);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.08s forwards;
+  margin-bottom: var(--space-lg);
 }
 
 .logoIconBox {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-xl);
-  background-color: var(--color-black);
-  color: var(--text-white);
+  background-color: var(--accent);
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
 }
 
 .logoIcon {
@@ -69,73 +66,76 @@
 }
 
 .authTitle {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  margin: 0 0 var(--space-xs);
-  color: var(--text-main);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.14s forwards;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  text-align: center;
+  color: var(--text);
 }
 
 .authSubtitle {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   color: var(--text-muted);
-  margin-bottom: var(--space-xl);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.2s forwards;
+  text-align: center;
+  margin-bottom: var(--space-lg);
 }
 
 .authForm {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  margin-bottom: var(--space-md);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.26s forwards;
+  gap: var(--space-sm);
 }
 
 .authInput {
   width: 100%;
-  padding: var(--space-xs) var(--space-md);
-  font-size: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  background-color: transparent;
-  color: var(--text-main);
-  box-sizing: border-box;
+  height: var(--control-height);
+  padding: 0 14px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--text);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 
   &::placeholder {
-    color: var(--text-light);
+    color: var(--text-faint);
+  }
+
+  &:hover {
+    border-color: var(--border-strong);
   }
 
   &:focus {
     outline: none;
-    border-color: var(--color-bg-dark);
+    border-color: var(--accent);
     box-shadow: var(--focus-ring);
   }
 }
 
 .authButtonPrimary {
   width: 100%;
-  padding: var(--space-xs) var(--space-md);
-  font-size: 1rem;
+  height: var(--control-height);
+  margin-top: 4px;
+  padding: 0 var(--space-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: opacity var(--transition-fast);
   display: flex;
   justify-content: center;
   align-items: center;
-  box-sizing: border-box;
-  background-color: var(--color-black);
-  color: var(--text-white);
+  background-color: var(--accent);
+  color: var(--on-accent);
   border: none;
+  transition: background-color var(--transition-fast);
 
   &:hover {
-    opacity: 0.9;
+    background-color: var(--accent-hover);
   }
 }
 
@@ -143,39 +143,36 @@
   width: 100%;
   display: flex;
   align-items: center;
-  margin: var(--space-xs) 0 var(--space-md);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.32s forwards;
+  margin: var(--space-lg) 0 var(--space-md);
 }
 
 .line {
   flex-grow: 1;
   height: 1px;
-  background-color: var(--color-separator);
+  background-color: var(--border);
 }
 
 .separatorText {
   margin: 0 var(--space-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .signUpLinkContainer {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic) 0.44s forwards;
+  text-align: center;
 }
 
 .signUpLink {
-  color: var(--text-muted);
-  text-decoration: underline;
-  transition: color var(--transition-fast);
+  color: var(--accent-text);
+  font-weight: 500;
+  text-decoration: none;
 
   &:hover {
-    color: var(--text-main);
+    text-decoration: underline;
   }
 }
 
@@ -185,22 +182,34 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 12px;
-  border-radius: var(--radius-xl, 8px);
+  border-radius: var(--radius-md);
 
-  background-color: #fef2f2;
-  border: 1px solid #fee2e2;
-  color: #dc2626;
+  background-color: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
 
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.4;
 
-  opacity: 0;
-  animation: fadeInUp 0.5s var(--ease-out-cubic, cubic-bezier(0.16, 1, 0.3, 1))
-    forwards;
+  animation: fadeInUp 0.3s var(--ease-out-cubic);
 }
 
 .errorIcon {
   flex-shrink: 0;
-  color: #dc2626;
+  color: var(--danger);
+}
+
+@media (max-width: 480px) {
+  .authContainer {
+    padding: 0;
+    background-color: var(--surface);
+  }
+
+  .authCard {
+    padding: var(--space-xl) var(--space-lg);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }

@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
 import { SidebarHeader } from "../../components/Sidebar/SidebarHeader";
 import { ChatList } from "../../components/Sidebar/ChatList";
 import { SearchResults } from "../../components/Sidebar/SearchResults"; // 👈 Новый компонент
@@ -28,7 +29,7 @@ export const MainPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!chatId);
 
   const selectedChat = chats.find((c) => String(c.id) === String(chatId));
 
@@ -206,7 +207,7 @@ export const MainPage = () => {
     <div className={styles.layout}>
       <aside
         className={`${styles.sidebar} ${
-          isSidebarOpen ? styles.sidebarOpen : ""
+          isSidebarOpen || !chatId ? styles.sidebarOpen : ""
         }`}
       >
         <SidebarHeader
@@ -239,12 +240,28 @@ export const MainPage = () => {
               selectedChat={selectedChat}
               onOpenSidebar={() => setIsSidebarOpen(true)}
             />
-            <MessageList userId={user.id} chatId={selectedChat.id} />
+            <MessageList
+              key={selectedChat.id}
+              userId={user.id}
+              chatId={selectedChat.id}
+              chatTitle={selectedChat.title}
+              isPartnerTyping={selectedChat.partnerIsTyping}
+            />
             <MessageInput chatId={selectedChat.id} />
           </>
         ) : (
           <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              <MessageSquare size={24} />
+            </div>
             <p>Select a chat or public room to start messaging</p>
+            <button
+              type="button"
+              className={styles.emptyAction}
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              Open chats
+            </button>
           </div>
         )}
       </main>
